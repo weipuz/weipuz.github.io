@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+		<style>
+			text {
+			  font: 10px sans-serif;
+			}
+		
+		</style>
+	<body>
+		<script src="d3.js" charset="utf-8"></script>
+		<script>
+		
+		var diameter = 960,
+		    format = d3.format(",d"),
+		    color = d3.scale.category20c();
+		
+		var widthScale = d3.scale.linear()	
+			.range([0,diameter-100]);
+			
+		var heightScale = d3.scale.linear()	
+			.range([diameter-100,0]);
+			
+		var colorScale = d3.scale.ordinal()
+		     .range(["blue", "red", "orange"]); 
+		     
+		var axis = d3.svg.axis()
+			.scale(widthScale)	
+			.orient("bottom");
+			
+		var y_axis = d3.svg.axis()
+			.scale(heightScale)
+			.orient("left"); 
+			
+		var bubble = d3.layout.pack()
+		    .sort(null)
+		    .size([diameter, diameter])
+		    .padding(1.5);
+		
+		var svg = d3.select("body").append("svg")
+		    .attr("width", diameter)
+		    .attr("height", diameter)
+		    .attr("class", "bubble");
+		    
+		var div = d3.select("body")
+			.append("div")
+			.attr("class", "tooltip")
+			.style("opacity",0);
+		    
+		d3.csv("country_life_expectancy.csv", function(data){
+			
+			var radiusScale = d3.scale.linear()
+		  	.domain([d3.min(data, function(d) { return Number(d.Population); }), d3.max(data, function(d) { return Number(d.Population); })])
+		  	.range([10, 35]);
+			
+			var Expectancy_max =0;
+			var Expectancy_min =0;
+			var Expectancy_array =[];
+			for(i=0; i<data.length;i++){
+				Expectancy_array[i] = parseFloat(data[i].Expectancy);		
+			}
+			Expectancy_max = Math.max.apply(Math,Expectancy_array);
+			Expectancy_min = Math.min.apply(Math,Expectancy_array);
+			//console.log(Expectancy_min);
+			//console.log(Expectancy_max);
+			var bonus = (Expectancy_max - Expectancy_min)/5;
+			//console.log(bonus);
+			var Expectancy_left = Expectancy_min-bonus;
+			var Expectancy_right = Expectancy_max+ bonus;
+			widthScale.domain([Expectancy_left, Expectancy_right]);
+			
+			
+			var Fertility_max =0;
+			var Fertility_min =0;
+			var Fertility_array =[];
+			for(i=0; i<data.length;i++){
+				Fertility_array[i] = parseFloat(data[i].Fertility);		
+			}
+			Fertility_max = Math.max.apply(Math,Fertility_array);
+			Fertility_min = Math.min.apply(Math,Fertility_array);
+			//console.log(Fertility_min);
+			//console.log(Fertility_max);
+			var bonus_1 = (Fertility_max - Fertility_min)/5;
+			//console.log(bonus_1);
+			var Fertility_left = Fertility_min-bonus_1;
+			var Fertility_right = Fertility_max+ bonus_1;
+			heightScale.domain([Fertility_left, Fertility_right]);
+			
+			
+			
+			svg.append("g")
+			.attr("transform", "translate(100,860)")
+			.call(axis)
+			.append("text")
+			.attr("dx", diameter - 150)
+		    .style("text-anchor", "end")
+			.text("Life Expectancy");
+			
+			svg.append("g")
+			.attr("transform", "translate(100,0)")	
+			.call(y_axis)
+			.append("text")
+		    .attr("dx", 10)
+		    .attr("dy", 10)
+			.text("Fertility");
+			
+			var Expectancy_ratio = 860/(Expectancy_right - Expectancy_left);
+			console.log(Expectancy_ratio);
+			
+			var Fertility_ratio = 860/(Fertility_right - Fertility_left);
+			console.log(Fertility_ratio);
+			
+			
+			var node = svg.selectAll(".node")
+				.data(data)
+				.enter()
+				.append("g")
+					.attr("class","node")
+					.attr("transform", function (d) {return "translate(" +  (100+(parseFloat(d.Expectancy) - Expectancy_left)*Expectancy_ratio) + "," 
+					+ (860 - ((parseFloat(d.Fertility) - Fertility_left)*Fertility_ratio)) + ")";});
+						
+			node.append("title")
+		      .text(function(d) { return "ID: " + d.ID + "\n" + 
+		      							"Life Expectancy: " + d.Expectancy + "\n"+
+		      							"Fertility: " + d.Fertility + "\n"+
+		      							"Region: " + d.Region + "\n"+
+		      							"Population: " + d.Population;});
+		    
+		    node.append("circle")
+		      .attr("r", function(d){return Math.sqrt(radiusScale(d.Population))*6;})
+		      .style("fill", function(d) { return colorScale(d.Region); })
+		      ;
+		      
+		    node.append("text")
+		      .attr("dy", ".3em")
+		      .style("text-anchor", "middle")
+		      .text(function(d) { return d.ID; });
+			
+		});	
+		</script>
+	</body>

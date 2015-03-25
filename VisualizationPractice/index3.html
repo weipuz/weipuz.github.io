@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://www.google.com/jsapi"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="jquery.csv-0.71.js"></script>
+        <script type="text/javascript">
+            //google.load("visualization", "1.1", {packages:["bar"]});
+            google.load('visualization', '1.0', {
+                'packages' : ['corechart']
+            });
+            google.setOnLoadCallback(drawStuff);
+
+            function drawStuff() {
+
+                $.get("http://www.sfu.ca/~avahdat/CMPT732/age_genre.csv", function(csvString) {
+                    // transform the CSV string into a 2-dimensional array
+                    var arrayData = $.csv.toArrays(csvString, {
+                        onParseValue : $.csv.hooks.castToScalar
+                    });
+                    var newArray = arrayData[0].map(function(col, i) {
+                        return arrayData.map(function(row) {
+                            return row[i];
+                        });
+                    });
+                    var header = ["under 18", "18-24", "25-34", "35-44", "45-49", "50-55", "above 55"];
+                    for (var i = 1; i < newArray[0].length; i++) {
+                        // this adds the given option to both select elements
+                        newArray[0][i] = header[i - 1];
+                    }
+
+                    var data = new google.visualization.arrayToDataTable(newArray);
+                    var options = {
+                        title : 'Movie Genre and User Age Dependency',
+                        hAxis : {
+                            title : 'Genre'
+                        },
+                        vAxis : {
+                            title : 'Conditional Prob.'
+                        }
+                    };
+
+                    var chart = new google.visualization.ColumnChart(document.getElementById('barchart_material'));
+                    chart.draw(data, options);
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div id="barchart_material" style="width: 1400px; height: 600px;"></div>
+    </body>
+</html>

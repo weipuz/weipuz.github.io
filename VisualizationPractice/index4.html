@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://www.google.com/jsapi"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="jquery.csv-0.71.js"></script>
+        <script type="text/javascript">
+            function clickCallback() {
+                $("#btnLeft").click(function() {
+                    var selectedItem = $("#rightValues option:selected");
+                    $("#leftValues").append(selectedItem);
+                });
+                $("#btnLeftAll").click(function() {
+                    var selectedItem = $("#rightValues option");
+                    $("#leftValues").append(selectedItem);
+                });
+
+                $("#btnRight").click(function() {
+                    var selectedItem = $("#leftValues option:selected");
+                    $("#rightValues").append(selectedItem);
+                });
+                $("#btnRightAll").click(function() {
+                    var selectedItem = $("#leftValues option");
+                    $("#rightValues").append(selectedItem);
+                });
+
+                $("#rightValues").change(function() {
+                    var selectedItem = $("#rightValues option:selected");
+                    $("#txtRight").val(selectedItem.text());
+                });
+            }
+        </script>
+        <script type="text/javascript">
+            //google.load("visualization", "1.1", {packages:["bar"]});
+            google.load('visualization', '1.0', {
+                'packages' : ['corechart']
+            });
+            google.setOnLoadCallback(drawStuff);
+            google.setOnLoadCallback(clickCallback);
+            function drawStuff() {
+                $.get("http://www.sfu.ca/~avahdat/CMPT732/occupation_genre.csv", function(csvString) {
+                    // transform the CSV string into a 2-dimensional array
+                    var arrayData = $.csv.toArrays(csvString, {
+                        onParseValue : $.csv.hooks.castToScalar
+                    });
+                    var newArray = arrayData[0].map(function(col, i) {
+                        return arrayData.map(function(row) {
+                            return row[i];
+                        });
+                    });
+                    for (var i = 1; i < 4; i++) {
+                        // this adds the given option to both select elements
+                        $("#leftValues").append("<option value='" + i + "'>" + newArray[0][i] + "</option");
+                    }
+                    for (var i = 4; i < newArray[0].length; i++) {
+                        // this adds the given option to both select elements
+                        $("#rightValues").append("<option value='" + i + "'>" + newArray[0][i] + "</option");
+                    }
+                    var data = new google.visualization.arrayToDataTable(newArray);
+                    var view = new google.visualization.DataView(data);
+                    view.setColumns([0, 1, 2, 3]);
+                    var options = {
+                        title : 'Movie Genre and User Occupation Dependency',
+                        hAxis : {
+                            title : 'Genre'
+                        },
+                        vAxis : {
+                            title : 'Conditional Prob.'
+                        }
+                    };
+                    var chart = new google.visualization.ColumnChart(document.getElementById('barchart_material'));
+                    chart.draw(view, options);
+
+                    $("#update").click(function() {
+                        var selectedValues = [0];
+                        var obj = $("#leftValues option");
+                        $("#leftValues option").each(function() {
+                            selectedValues.push(parseInt($(this).val()));
+                        });
+                        view.setColumns(selectedValues);
+                        // update the chart
+                        chart.draw(view, options);
+                    });
+                });
+            }
+        </script>
+		<style>
+            SELECT, INPUT[type="text"] {
+                width: 160px;
+                box-sizing: border-box;
+            }
+            SECTION {
+                width: 400px;
+                height: 120px;
+                margin-left: auto;
+                margin-right: auto;
+                padding: 8px;
+                background-color: #f0f0f0;
+                overflow: auto;
+            }
+            SECTION > DIV {
+                float: left;
+                padding: 5px;
+            }
+            SECTION > DIV + DIV {
+                width: 40px;
+                text-align: center;
+            }
+		</style>
+	</head>
+    <body>
+        <section class="container">
+            <div>
+                <a>Choosed Occupations:</a>
+                <br>
+                <select id="leftValues" size="6" multiple></select>
+            </div>
+            <div>
+                <input type="button" id="btnLeft" value="&lt;&lt;" />
+                <input type="button" id="btnRight" value="&gt;&gt;" />
+                <input type="button" id="btnLeftAll" value="&lt;&lt;&lt;" />
+                <input type="button" id="btnRightAll" value="&gt;&gt;&gt;" />
+            </div>
+            <div>
+                <a>All:</a>
+                <br>
+                <select id="rightValues" size="6" multiple></select>
+            </div>
+        </section>
+        <div style ="text-align:center;">
+            <input type="button", id="update", position="center", value="Update Chart">
+            </input>
+        </div>
+        <div id="barchart_material" style="width: 1000px; height: 400px;margin-left: auto;margin-right: auto;"></div>
+    </body>
+</html>
