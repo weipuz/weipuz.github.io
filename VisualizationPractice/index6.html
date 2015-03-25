@@ -26,7 +26,7 @@
   <footer>
     <h1>Twitter Stream Count for #<span class="Hashtag">vote5sos</span></h1>
     <p>With data from <a href="http://twitter.com">Twitter</a>. Inspired by <a href="http://bl.ocks.org/karmi/raw/2366285/">karmi's Life Expectancy </a></p>
-    <p class="hint"><em>Use arrow keys to cycle through different Hashtags or <a id="autoplay" href="#">autoplay</a>.</em></p>
+    <p class="hint"><em>Use arrow keys to cycle through different Hashtags or <a id="autoplay" href="#">Stop autoplay</a>.</em></p>
   </footer>
 </body>
 
@@ -183,8 +183,8 @@ d3.csv("country_test.csv", function(csv) {
   });
 
   // Hook up autoplay
-  var playing = false,
-      loop    = null;
+  var playing = true,
+      loop    = setInterval( function() { year_index += 1; update(); }, 750 );;
   d3.select("#autoplay").on("click", function() {
     d3.event.preventDefault();
     if (playing) {
